@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<head>
+  <title>regexpp playground</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <h1>
+    <a href="https://github.com/mysticatea/regexpp">regexpp</a> playground
+  </h1>
+  <div class="loading">...loading</div>
+  <div>
+    <button class="parse">parse</button>
+    <div class="body">
+      <textarea style="width: 50%" class="editor"></textarea>
+      <pre
+        style="width: 50%; background-color: gainsboro"
+      ><code class="ast" ></code></pre>
+    </div>
+  </div>
+  <script type="module">
+    const loadingDiv = document.querySelector(".loading");
+    const bodyDiv = document.querySelector(".body");
+    bodyDiv.style["display"] = "none";
+
+    const { RegExpParser } = await import(
+      "https://unpkg.com/regexpp@3.2.0/index.mjs"
+    );
+    const parser = new RegExpParser();
+
+    loadingDiv.style["display"] = "none";
+    bodyDiv.style["display"] = "flex";
+
+    const editor = document.querySelector(".editor");
+    const ast = document.querySelector(".ast");
+    const button = document.querySelector(".parse");
+
+    const getCircularReplacer = () => {
+      const seen = new WeakSet();
+      return (key, value) => {
+        if (typeof value === "object" && value !== null) {
+          if (seen.has(value)) {
+            return;
+          }
+          seen.add(value);
+        }
+        return value;
+      };
+    };
+
+    button.addEventListener("click", () => {
+      const value = editor.value;
+      const parsed = parser.parsePattern(value);
+      const stringified = JSON.stringify(parsed, getCircularReplacer(), 2);
+      ast.innerHTML = stringified;
+    });
+  </script>
+</body>
